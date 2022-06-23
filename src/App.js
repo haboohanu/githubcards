@@ -1,35 +1,12 @@
 import logo from './logo.svg';
 import './App.css';
 import { Component, createRef } from "react";
-
-const testData = [
-  {
-    "avatar_url": "https://avatars.githubusercontent.com/u/810438?v=4",
-    "name": "dan",
-    "company": "Facebook",
-  },
-  {
-    "avatar_url": "https://avatars.githubusercontent.com/u/47673723?v=4",
-    "name": "Jimmy",
-    "company": "Twitter ",
-  },
-  {
-    "avatar_url": "https://avatars.githubusercontent.com/u/1674?v=4",
-    "name": "Jason",
-    "company": "Snapchat",
-  },
-  {
-    "avatar_url": "https://avatars.githubusercontent.com/u/100828?v=4",
-    "name": "Sophie Essen",
-    "company": "SETI Institute",
-
-  }
-]
+import axios from 'axios';
 
 
 const CardList = (props) => (
   <div>
-    {props.profiles.map(profile => <Card {...profile}/>)}
+    {props.profiles.map(profile => <Card key={profile.id}{...profile} />)}
   </div>
 );
 
@@ -38,9 +15,9 @@ class Card extends Component {
     const profile = this.props
     return (
       <div className="github-profile">
-        <img src={profile.avatar_url} alt='avatar'/>
+        <img src={profile.avatar_url} alt='avatar' />
         <div className="info">
-          <div className="name" style={{fontSize:'125%'}}>{profile.name}</div>
+          <div className="name" style={{ fontSize: '125%' }}>{profile.name}</div>
           <div className="company">{profile.company}</div>
         </div>
       </div>
@@ -48,19 +25,18 @@ class Card extends Component {
   }
 }
 
-class Form extends Component{
-  state = {userName: ''}
-  handleSubmit = (event) =>{
+class Form extends Component {
+  state = { userName: '' }
+  handleSubmit = async (event) => {
     event.preventDefault();
-    console.log(
-      this.userNameInput.current.value
-    )
+    const response = await axios.get(`https://api.github.com/users/${this.state.userName}`)
+    this.props.onSubmit(response.data)
   }
 
-  render(){
-    return(
+  render() {
+    return (
       <form onSubmit={this.handleSubmit}>
-        <input type="text" value={this.state.userName} onChange={event => this.setState({ userName: event.target.value })} placeholder="GitHub username" required/>
+        <input type="text" value={this.state.userName} onChange={event => this.setState({ userName: event.target.value })} placeholder="GitHub username" required />
         <button>Add card</button>
       </form>
     )
@@ -68,13 +44,19 @@ class Form extends Component{
 }
 
 class Main extends Component {
-  state = {profiles: testData};
+  state = { profiles: [] };
+  addNewProfile = (profileData) => {
+    this.setState(prevState => ({
+      profiles: [...prevState.profiles, profileData]
+    }))
+  }
+
   render() {
     return (
       <div>
         <div className="header">{this.props.title}</div>
-        <Form />
-        <CardList profiles={this.state.profiles}/>
+        <Form onSubmit={this.addNewProfile} />
+        <CardList profiles={this.state.profiles} />
       </div>
     )
   }
